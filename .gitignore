@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+*.local
+.vite
+
+# Claude local worktree mirrors (full duplicate of the app; keep repo = one canonical tree)
+.claude/worktrees/
+
+# Large local BOM reference exports (keep markdown in repo)
+Documents/Bom/*.pdf
+Documents/Bom/*.zip
