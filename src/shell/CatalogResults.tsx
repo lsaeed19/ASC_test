@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
+import { useCatalogSelection } from '../context/CatalogSelectionContext';
 import { CATALOG_DEMO_PARTS } from '../catalog/catalogDemoData';
 import { shellLayout } from '../theme/hydraAlias';
 import { PageBackButton } from './PageBackButton';
 import { hydraBaseStrong } from '../theme/hydraTypography';
 import type { CatalogPartRow } from '../catalog/catalogDemoData';
-import { Button, Empty, Flex, Pagination, Space, Table, Typography, theme } from '../ui/antd';
+import { App, Button, Empty, Flex, Pagination, Space, Table, Typography, theme } from '../ui/antd';
 import type { TableColumnsType } from '../ui/antd';
 
 function matchesCatalogQuery(part: CatalogPartRow, rawQuery: string): boolean {
@@ -21,7 +22,9 @@ function matchesCatalogQuery(part: CatalogPartRow, rawQuery: string): boolean {
 
 export function CatalogResults() {
   const { token } = theme.useToken();
+  const { message } = App.useApp();
   const navigate = useNavigate();
+  const { addStaged } = useCatalogSelection();
   const [params] = useSearchParams();
   const q = params.get('q') ?? '';
   const [page, setPage] = useState(1);
@@ -55,6 +58,33 @@ export function CatalogResults() {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+    },
+    {
+      title: 'Selection',
+      key: 'selection',
+      width: token.controlHeight * 6,
+      render: (_: unknown, row) => (
+        <Button
+          type="link"
+          size="small"
+          style={{ padding: 0 }}
+          onClick={() => {
+            const title = `${row.sku} — ${row.description}`;
+            const outcome = addStaged({
+              partKey: row.key,
+              partSku: row.sku,
+              title,
+            });
+            if (outcome === 'duplicate') {
+              message.info('This part is already in your selection.');
+            } else {
+              message.success('Added to selection. Open Selection in the header to pick a project.');
+            }
+          }}
+        >
+          Add to selection
+        </Button>
+      ),
     },
   ];
 

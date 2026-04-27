@@ -6,6 +6,7 @@ import { App } from './App';
 import { ActiveProjectProvider } from './context/ActiveProjectContext';
 import { BomWorkspaceProvider } from './context/BomWorkspaceContext';
 import { HydraThemeProvider } from './context/HydraThemeContext';
+import { CatalogSelectionProvider } from './context/CatalogSelectionContext';
 import { SubmittalDraftProvider } from './context/SubmittalDraftContext';
 
 import './index.css';
@@ -18,7 +19,9 @@ createRoot(document.getElementById('root')!).render(
         <ActiveProjectProvider>
           <BomWorkspaceProvider>
             <SubmittalDraftProvider>
-              <App />
+              <CatalogSelectionProvider>
+                <App />
+              </CatalogSelectionProvider>
             </SubmittalDraftProvider>
           </BomWorkspaceProvider>
         </ActiveProjectProvider>

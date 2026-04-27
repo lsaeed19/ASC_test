@@ -16,7 +16,14 @@ import type { TableColumnsType } from '../ui/antd';
 
 const PREVIEW_ROWS = CATALOG_DEMO_PARTS.slice(0, 2);
 
-/** Top-level catalog entry: browse parts without selecting a project (Matt flow). */
+/**
+ * Top-level catalog entry: browse parts without selecting a project (Matt flow).
+ *
+ * PRD scenario 9 demo path: (1) Search / browse all here without a project.
+ * (2) On results, “Add to selection” on two parts. (3) Header “Selection” → Choose project → change
+ * project in the modal if needed → Add to submittal & open. (4) Cancel attach: selection stays.
+ * (5) Remove all in the drawer to discard. (6) Part page “Quick download” stays ungated.
+ */
 export function CatalogHome() {
   const { token } = theme.useToken();
   const navigate = useNavigate();

@@ -1,19 +1,14 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+import { useCatalogSelection } from '../context/CatalogSelectionContext';
 import { catalogPartByKey } from '../catalog/catalogDemoData';
 import { PageBackButton } from './PageBackButton';
 import { hydraSmallNormal, hydraTextStyleToReactCss } from '../theme/hydraTypography';
-import { useSubmittalDraft } from '../context/SubmittalDraftContext';
-import { useUmbrellaCompany } from '../context/UmbrellaCompanyContext';
-import { PROJECT_SEED_ROWS } from './projectSeed';
 import {
   App,
   Button,
   Descriptions,
   Flex,
-  Modal,
-  Select,
   Space,
   Tooltip,
   Typography,
@@ -21,43 +16,44 @@ import {
 } from '../ui/antd';
 
 /**
- * Single part page: quick download without a project; submittal adds a cut-sheet PDF line after project pick.
+ * Single part page: quick download without a project; submittal lines use global selection + header drawer gate.
  */
 export function CatalogPartPage() {
   const { token } = theme.useToken();
   const { message } = App.useApp();
   const { partId } = useParams<{ partId: string }>();
-  const navigate = useNavigate();
-  const { addLine } = useSubmittalDraft();
-  const { companySlug } = useUmbrellaCompany();
-
-  const [gateOpen, setGateOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(undefined);
+  const { addStaged, openSelectionDrawer } = useCatalogSelection();
 
   const part = partId ? catalogPartByKey(partId) : undefined;
   const label = part?.sku ?? partId ?? '—';
   const partTitle = part?.description ?? `Part ${label}`;
+  const titleLine = part ? `${part.sku} — ${part.description}` : '';
 
-  const openGate = () => {
-    setSelectedProjectId(PROJECT_SEED_ROWS[0]?.key);
-    setGateOpen(true);
-  };
-
-  const confirmAddToSubmittal = () => {
-    if (!partId || !part || !selectedProjectId) {
-      message.warning('Choose a project to continue.');
-      return;
-    }
-    const projectName =
-      PROJECT_SEED_ROWS.find((p) => p.key === selectedProjectId)?.name ?? 'project';
-    addLine(selectedProjectId, {
+  const addCurrentToSelection = (): 'added' | 'duplicate' => {
+    if (!part) return 'duplicate';
+    return addStaged({
       partKey: part.key,
       partSku: part.sku,
-      title: `${part.sku} — ${part.description}`,
+      title: titleLine,
     });
-    message.success(`${part.sku} cut sheet added to submittal for ${projectName}.`);
-    setGateOpen(false);
-    navigate(`/${companySlug}/projects/${selectedProjectId}/submittal`);
+  };
+
+  const onAddToSelection = () => {
+    const outcome = addCurrentToSelection();
+    if (outcome === 'duplicate') {
+      message.info('This part is already in your selection.');
+    } else {
+      message.success('Added to selection.');
+    }
+  };
+
+  const onQueueForSubmittal = () => {
+    if (!part) return;
+    const outcome = addCurrentToSelection();
+    if (outcome === 'duplicate') {
+      message.info('Already in your selection — opening it so you can pick a project.');
+    }
+    openSelectionDrawer();
   };
 
   return (
@@ -68,8 +64,8 @@ export function CatalogPartPage() {
       </Typography.Title>
       <Typography.Paragraph type="secondary" style={{ margin: 0 }}>
         The cut sheet PDF for this part can be added to a <Typography.Text strong>submittal package</Typography.Text>{' '}
-        under a project. Submittal PDFs are managed in{' '}
-        <Typography.Text strong>Submittal manager</Typography.Text> for the project you choose.
+        under a project. Use <Typography.Text strong>Selection</Typography.Text> in the header to review items and
+        choose a project when you are ready — canceling that step keeps your list until you attach or clear it.
       </Typography.Paragraph>
 
       <Descriptions column={1} size="small" bordered styles={{ label: { width: token.controlHeight * 5 } }}>
@@ -81,45 +77,21 @@ export function CatalogPartPage() {
         <Tooltip title="Downloads immediately. No project required.">
           <Button onClick={() => message.info('Stub: file would download now.')}>Quick download</Button>
         </Tooltip>
-        <Tooltip title="Pick a project, then opens Submittal manager with this PDF queued.">
-          <Button type="primary" onClick={openGate}>
-            Add PDF to submittal
+        <Tooltip title="Adds to your catalog selection without opening the drawer.">
+          <Button onClick={onAddToSelection} disabled={!part}>
+            Add to selection
+          </Button>
+        </Tooltip>
+        <Tooltip title="Adds if needed, then opens Selection so you can choose a project.">
+          <Button type="primary" onClick={onQueueForSubmittal} disabled={!part}>
+            Pick project for submittal…
           </Button>
         </Tooltip>
       </Flex>
       <Typography.Text type="secondary" style={hydraTextStyleToReactCss(hydraSmallNormal)}>
-        Quick download: no project. Add to submittal: requires a project; you&apos;ll land in Submittal
-        manager for that project.
+        Quick download: no project. Submittal: staged globally, then one explicit project step in the Selection
+        drawer.
       </Typography.Text>
-
-      <Modal
-        title="Add cut sheet to submittal"
-        open={gateOpen}
-        onCancel={() => setGateOpen(false)}
-        onOk={confirmAddToSubmittal}
-        okText="Add and open submittal"
-        destroyOnClose
-      >
-        <Space orientation="vertical" size={token.margin} style={{ width: '100%' }}>
-          <Typography.Paragraph style={{ margin: 0 }}>
-            Submittals are organized per project. Choose which project should receive this cut sheet; we
-            open <Typography.Text strong>Submittal manager</Typography.Text> so you can review or add more
-            PDFs.
-          </Typography.Paragraph>
-          <div>
-            <Typography.Text type="secondary" style={{ display: 'block', marginBottom: token.marginXS }}>
-              Project
-            </Typography.Text>
-            <Select
-              style={{ width: '100%' }}
-              placeholder="Select a project"
-              value={selectedProjectId}
-              onChange={setSelectedProjectId}
-              options={PROJECT_SEED_ROWS.map((p) => ({ value: p.key, label: p.name }))}
-            />
-          </div>
-        </Space>
-      </Modal>
     </Space>
   );
 }

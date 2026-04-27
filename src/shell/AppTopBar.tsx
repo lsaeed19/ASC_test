@@ -16,6 +16,7 @@ import { shellLayout } from '../theme/hydraAlias';
 import { Avatar, Button, Dropdown, Flex, List, Modal, Typography, theme } from '../ui/antd';
 import type { MenuProps } from '../ui/antd';
 import { useActiveProject } from '../context/ActiveProjectContext';
+import { CatalogSelectionChrome, CatalogSelectionTopBarButton } from './CatalogSelectionShell';
 import { PROJECT_SEED_ROWS, type ProjectRow } from './projectSeed';
 
 const userMenuItems: MenuProps['items'] = [
@@ -180,6 +181,7 @@ export function AppTopBar() {
         </Flex>
 
         <Flex align="center" gap={token.marginSM} style={{ flexShrink: 0 }}>
+          <CatalogSelectionTopBarButton />
           <Button
             type="text"
             icon={<FolderOpenOutlined />}
@@ -242,6 +244,7 @@ export function AppTopBar() {
       </Flex>
 
       <SwitchProjectModal open={switchOpen} onClose={() => setSwitchOpen(false)} />
+      <CatalogSelectionChrome />
     </>
   );
 }

@@ -56,8 +56,9 @@ function getSnapshot(): DraftStore {
   return storeCache;
 }
 
+/** Client-only SPA: must match {@link getSnapshot} under React 18 StrictMode (see `useSyncExternalStore`). */
 function getServerSnapshot(): DraftStore {
-  return {};
+  return getSnapshot();
 }
 
 type SubmittalDraftContextValue = {
