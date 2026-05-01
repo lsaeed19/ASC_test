@@ -1,16 +1,12 @@
-import { useNavigate } from 'react-router-dom';
-
-import { Button, Card, Col, Flex, Progress, Row, Space, Typography, theme } from '../ui/antd';
+import { Card, Col, Flex, Progress, Row, Space, Typography, theme } from '../ui/antd';
 
 type CrossProjectOverviewProps = {
   projectCount: number;
-  onNewProject: () => void;
 };
 
-/** Cross-project metrics and quick actions (formerly dashboard-only body). */
-export function CrossProjectOverview({ projectCount, onNewProject }: CrossProjectOverviewProps) {
+/** Cross-project metrics (formerly dashboard-only body). */
+export function CrossProjectOverview({ projectCount }: CrossProjectOverviewProps) {
   const { token } = theme.useToken();
-  const navigate = useNavigate();
 
   return (
     <Space orientation="vertical" size={token.marginLG} style={{ width: '100%' }}>
@@ -18,43 +14,8 @@ export function CrossProjectOverview({ projectCount, onNewProject }: CrossProjec
         Company overview
       </Typography.Title>
       <Typography.Paragraph type="secondary" style={{ margin: 0 }}>
-        Cross-project snapshot (demo metrics).
+        Summary context for the company ({projectCount} job sites in this demo). Below: workload snapshot.
       </Typography.Paragraph>
-
-      <Row gutter={[token.marginMD, token.marginMD]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small">
-            <Typography.Text type="secondary">Active projects</Typography.Text>
-            <Typography.Title level={2} style={{ margin: token.marginXXS }}>
-              {projectCount}
-            </Typography.Title>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small">
-            <Typography.Text type="secondary">BOM runs in progress</Typography.Text>
-            <Typography.Title level={2} style={{ margin: token.marginXXS }}>
-              8
-            </Typography.Title>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small">
-            <Typography.Text type="secondary">Submittals</Typography.Text>
-            <Typography.Title level={2} style={{ margin: token.marginXXS }}>
-              34
-            </Typography.Title>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small">
-            <Typography.Text type="secondary">Open requests</Typography.Text>
-            <Typography.Title level={2} style={{ margin: token.marginXXS }}>
-              3
-            </Typography.Title>
-          </Card>
-        </Col>
-      </Row>
 
       <Row gutter={[token.marginMD, token.marginMD]}>
         <Col xs={24} lg={14}>
@@ -94,14 +55,6 @@ export function CrossProjectOverview({ projectCount, onNewProject }: CrossProjec
           </Card>
         </Col>
       </Row>
-
-      <Flex gap={token.marginSM} wrap="wrap">
-        <Button type="primary" onClick={onNewProject}>
-          New project
-        </Button>
-        <Button onClick={() => navigate('/bom')}>Upload BOM</Button>
-        <Button onClick={() => navigate('/catalog')}>Browse catalog</Button>
-      </Flex>
     </Space>
   );
 }

@@ -1,16 +1,29 @@
-import { DownOutlined, GlobalOutlined, PlusOutlined, StarFilled, StarOutlined, UpOutlined } from '@ant-design/icons';
-import { useEffect, useMemo, useState, type Key } from 'react';
-import type { NavigateFunction } from 'react-router-dom';
+import {
+  CalculatorOutlined,
+  FileTextOutlined,
+  GlobalOutlined,
+  InboxOutlined,
+  MoreOutlined,
+  PlusOutlined,
+  RightOutlined,
+  SearchOutlined,
+  StarFilled,
+  StarOutlined,
+  UnorderedListOutlined,
+} from '@ant-design/icons';
+import { useEffect, useMemo, useState, type Key, type ReactNode } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
+import { mockBomProjects } from '../bom/data/mockData';
 import { useActiveProject } from '../context/ActiveProjectContext';
+import { useSubmittalDraft } from '../context/SubmittalDraftContext';
 import { useUmbrellaCompany } from '../context/UmbrellaCompanyContext';
 import {
   AppSearchInput,
-  Alert,
   Button,
   Card,
   Col,
+  Dropdown,
   Empty,
   Flex,
   Form,
@@ -24,9 +37,8 @@ import {
   Typography,
   theme,
 } from '../ui/antd';
-import type { TableColumnsType, TabsProps } from '../ui/antd';
+import type { MenuProps, TableColumnsType, TabsProps } from '../ui/antd';
 
-import { shellLayout } from '../theme/hydraAlias';
 import { hydraBaseStrong } from '../theme/hydraTypography';
 import { CrossProjectOverview } from './CrossProjectOverview';
 import { PROJECT_SEED_ROWS, type ProjectRow } from './projectSeed';
@@ -50,330 +62,176 @@ function takeCount(seed: number, salt: number, min: number, max: number): number
   return min + (seed + salt * 17) % span;
 }
 
-type ProjectPreviewProps = {
-  project: ProjectRow;
-  companySlug: string;
-  navigate: NavigateFunction;
-};
+const HOME_HUB_PROJECTS_PAGE_SIZE = 10;
 
-type ModuleRow = { title: string; description: string };
-
-const DEMO_STAMP = 'Mar 2, 2025, 9:22 AM';
-
-type ModulePackageCardProps = {
-  headerTitle: string;
-  headerMeta: string;
-  expanded: boolean;
-  onToggle: () => void;
-  rows: ModuleRow[];
-  openModule: () => void;
-  openLabel: string;
-};
-
-/** Submittal-package reference: white card, blue title + chevron, metadata right, table body. */
-function ModulePackageCard({
-  headerTitle,
-  headerMeta,
-  expanded,
-  onToggle,
-  rows,
-  openModule,
-  openLabel,
-}: ModulePackageCardProps) {
-  const { token } = theme.useToken();
-  const chevron = expanded ? (
-    <UpOutlined style={{ color: token.colorPrimary, fontSize: token.fontSizeSM }} />
-  ) : (
-    <DownOutlined style={{ color: token.colorPrimary, fontSize: token.fontSizeSM }} />
-  );
-
-  const cardChrome = {
-    background: token.colorBgContainer,
-    borderRadius: token.borderRadiusLG,
-    border: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
-    boxShadow: token.boxShadowTertiary,
-    overflow: 'hidden' as const,
-  };
-
-  return (
-    <div style={cardChrome}>
-      <button
-        type="button"
-        onClick={onToggle}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: token.marginSM,
-          width: '100%',
-          textAlign: 'left',
-          cursor: 'pointer',
-          paddingBlock: token.paddingMD + 2,
-          paddingInline: token.paddingLG,
-          border: 'none',
-          background: token.colorBgContainer,
-          fontFamily: 'inherit',
-          outline: 'none',
-        }}
-      >
-        {chevron}
-        <Typography.Text
-          strong
-          style={{
-            flex: 1,
-            margin: 0,
-            fontSize: token.fontSizeLG,
-            color: token.colorPrimary,
-            fontWeight: token.fontWeightStrong,
-          }}
-        >
-          {headerTitle}
-        </Typography.Text>
-        <Typography.Text
-          type="secondary"
-          style={{
-            margin: 0,
-            fontSize: token.fontSizeSM,
-            color: token.colorTextSecondary,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {headerMeta}
-        </Typography.Text>
-      </button>
-
-      {expanded ? (
-        <div
-          style={{
-            borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
-            paddingInline: token.paddingLG + 4,
-            paddingBlock: token.paddingLG,
-          }}
-        >
-          <Flex
-            align="center"
-            style={{
-              marginBottom: token.marginSM,
-              paddingBottom: token.paddingXS,
-              borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
-              fontSize: token.fontSizeSM,
-              fontWeight: token.fontWeightStrong,
-              color: token.colorTextSecondary,
-              textTransform: 'uppercase' as const,
-              letterSpacing: 0.04,
-            }}
-          >
-            <span style={{ width: 44, flexShrink: 0 }}>Thumb</span>
-            <span style={{ flex: 1, paddingInline: token.paddingSM }}>Name</span>
-            <span style={{ width: 140, flexShrink: 0 }}>Notes</span>
-            <span style={{ width: 88, flexShrink: 0, textAlign: 'right' }}>Actions</span>
-          </Flex>
-          {rows.map((row, i) => (
-            <Flex
-              key={`${row.title}-${i}`}
-              align="center"
-              gap={token.marginSM}
-              style={{
-                paddingBlock: token.paddingSM,
-                borderBottom:
-                  i < rows.length - 1
-                    ? `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
-                    : undefined,
-              }}
-            >
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  flexShrink: 0,
-                  borderRadius: token.borderRadiusSM,
-                  background: token.colorFillSecondary,
-                  border: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
-                }}
-              />
-              <div style={{ flex: 1, minWidth: 0, paddingInline: token.paddingXS }}>
-                <Typography.Text strong style={{ display: 'block', fontSize: token.fontSize }}>
-                  {row.title}
-                </Typography.Text>
-                <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
-                  {row.description}
-                </Typography.Text>
-              </div>
-              <Typography.Text
-                type="secondary"
-                style={{ width: 140, flexShrink: 0, fontSize: token.fontSizeSM }}
-              >
-                Sample
-              </Typography.Text>
-              <div style={{ width: 88, flexShrink: 0, textAlign: 'right' }}>
-                <Button type="link" size="small" onClick={openModule} style={{ paddingInline: token.paddingXXS }}>
-                  {openLabel}
-                </Button>
-              </div>
-            </Flex>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
+function bomCountForUmbrellaProject(projectKey: string): number {
+  return mockBomProjects.filter((p) => p.projectId === projectKey).length;
 }
 
-/** Sample module breakdown for expanded project row (deterministic from project key). */
-function ProjectWorkspacePreview({ project, companySlug, navigate }: ProjectPreviewProps) {
+type ModuleRollupCardProps = {
+  title: string;
+  countLabel: string;
+  icon: ReactNode;
+  onNavigate: () => void;
+};
+
+/** Dense clickable module card — only used inside expanded project rows. */
+function ModuleRollupCard({ title, countLabel, icon, onNavigate }: ModuleRollupCardProps) {
   const { token } = theme.useToken();
-  const pid = project.key;
-  const s = hashSeed(pid);
-  const basePath = `/${companySlug}/projects/${pid}`;
-
-  const seisPool = [
-    'Zone A · lateral bracing',
-    'Stair 2 · riser run',
-    'Roof MEP · dunnage layout',
-    'Level 1 · storefront lateral',
-    'Penthouse · mech screen wall',
-  ];
-  const seisCount = takeCount(s, 1, 1, 5);
-  const seisItems = seisPool.slice(0, seisCount);
-
-  const bomPool = [
-    'Mechanical Piping v2',
-    'Electrical rough-in',
-    'Structural steel takeoff',
-    'HVAC punch list',
-  ];
-  const bomCount = takeCount(s, 2, 1, 4);
-  const bomItems = bomPool.slice(0, bomCount);
-
-  const submittalPool = [
-    'Rev 2 · HVAC cut sheets',
-    'Lighting & controls package',
-    'Accessories addendum',
-    'Door hardware set · Div 8',
-  ];
-  const subCount = takeCount(s, 3, 1, 4);
-  const submittalItems = submittalPool.slice(0, subCount);
-
-  const specPool = ['Division 23 binder', 'Seismic load summary', 'Alternate A · bracing notes'];
-  const specCount = takeCount(s, 4, 1, 3);
-  const specItems = specPool.slice(0, specCount);
-
-  const contentPool = ['Shared folder · RFIs', 'ASI-04 attachments', 'O&M draft packet'];
-  const contentCount = takeCount(s, 5, 1, 3);
-  const contentItems = contentPool.slice(0, contentCount);
-
-  const openSeis = () => navigate(`${basePath}/seis-brace`);
-  const openBom = () => navigate('/bom');
-  const openSub = () => navigate(`${basePath}/submittal`);
-  const openSpec = () => navigate(`${basePath}/sales-brace`);
-  const openContent = () => navigate(`${basePath}/content`);
-
-  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => ({
-    seis: true,
-    bom: true,
-    packages: true,
-    spec: true,
-    content: true,
-  }));
-
-  const toggle = (key: string) => {
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const toRows = (titles: string[], desc: string): ModuleRow[] =>
-    titles.map((title) => ({ title, description: desc }));
-
-  const packages = [
-    {
-      panelKey: 'seis',
-      headerTitle: 'SeisBrace',
-      headerMeta: `${seisItems.length} design${seisItems.length === 1 ? '' : 's'} · ${DEMO_STAMP}`,
-      rows: toRows(seisItems, 'Stub · last saved 2d ago'),
-      openModule: openSeis,
-      openLabel: 'Open',
-    },
-    {
-      panelKey: 'bom',
-      headerTitle: 'BOM',
-      headerMeta: `${bomItems.length} run${bomItems.length === 1 ? '' : 's'} · ${DEMO_STAMP}`,
-      rows: toRows(bomItems, 'Matching status · sample'),
-      openModule: openBom,
-      openLabel: 'Open',
-    },
-    {
-      panelKey: 'packages',
-      headerTitle: 'Submittal packages',
-      headerMeta: `${submittalItems.length} package${submittalItems.length === 1 ? '' : 's'} · ${DEMO_STAMP}`,
-      rows: toRows(submittalItems, 'PDFs queued · sample'),
-      openModule: openSub,
-      openLabel: 'Open',
-    },
-    {
-      panelKey: 'spec',
-      headerTitle: 'Spec',
-      headerMeta: `${specItems.length} item${specItems.length === 1 ? '' : 's'} · ${DEMO_STAMP}`,
-      rows: toRows(specItems, 'Spec workspace · sample'),
-      openModule: openSpec,
-      openLabel: 'Open',
-    },
-    {
-      panelKey: 'content',
-      headerTitle: 'Content',
-      headerMeta: `${contentItems.length} bundle${contentItems.length === 1 ? '' : 's'} · ${DEMO_STAMP}`,
-      rows: toRows(contentItems, 'Downloads & files · sample'),
-      openModule: openContent,
-      openLabel: 'Open',
-    },
-  ];
-
+  const label = `Open ${title} module`;
   return (
-    <div
-      style={{
-        paddingBlock: token.paddingLG,
-        paddingInline: token.paddingMD,
-        paddingInlineStart: token.paddingLG,
-        background: 'rgba(251, 251, 251, 1)',
-        color: 'rgba(0, 0, 0, 1)',
+    <Card
+      size="small"
+      bordered
+      hoverable
+      role="button"
+      tabIndex={0}
+      aria-label={label}
+      styles={{
+        root: {
+          cursor: 'pointer',
+          borderColor: token.colorBorderSecondary,
+          transition: `box-shadow ${token.motionDurationMid}, border-color ${token.motionDurationMid}`,
+        },
+        body: { padding: token.paddingSM },
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onNavigate();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation();
+          onNavigate();
+        }
       }}
     >
-      <Flex vertical gap={token.marginMD} style={{ width: '100%' }}>
-        {packages.map((p) => (
-          <ModulePackageCard
-            key={p.panelKey}
-            headerTitle={p.headerTitle}
-            headerMeta={p.headerMeta}
-            expanded={expanded[p.panelKey] ?? false}
-            onToggle={() => toggle(p.panelKey)}
-            rows={p.rows}
-            openModule={p.openModule}
-            openLabel={p.openLabel}
-          />
-        ))}
+      <Flex vertical gap={token.marginXS}>
+        <Flex align="flex-start" gap={token.marginSM}>
+          <span
+            aria-hidden
+            style={{
+              color: token.colorPrimary,
+              fontSize: token.fontSizeHeading4,
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            {icon}
+          </span>
+          <Flex vertical gap={token.marginXXS} style={{ flex: 1, minWidth: 0 }}>
+            <Typography.Text strong ellipsis={{ tooltip: title }}>
+              {title}
+            </Typography.Text>
+            <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }} ellipsis={{ tooltip: countLabel }}>
+              {countLabel}
+            </Typography.Text>
+          </Flex>
+        </Flex>
+        <Flex justify="flex-end" align="center" gap={token.marginXXS}>
+          <span
+            style={{
+              color: token.colorPrimary,
+              fontSize: token.fontSizeSM,
+              userSelect: 'none',
+              textDecoration: 'underline',
+              textDecorationColor: token.colorPrimaryBorder,
+              textUnderlineOffset: 3,
+            }}
+          >
+            Open module <RightOutlined style={{ fontSize: token.fontSizeSM }} aria-hidden />
+          </span>
+        </Flex>
       </Flex>
-    </div>
+    </Card>
   );
 }
 
-function pickRecentProjectsForStrip(allRows: ProjectRow[]): ProjectRow[] {
-  return [...allRows]
-    .sort((a, b) => {
-      if (a.recent !== b.recent) return a.recent ? -1 : 1;
-      return 0;
-    })
-    .slice(0, 3);
+/** Roll-up counts as module entry cards — only rendered inside an expanded table row. */
+function ProjectModuleRollupCards({ project, companySlug }: { project: ProjectRow; companySlug: string }) {
+  const { token } = theme.useToken();
+  const navigate = useNavigate();
+  const { setProjectId } = useActiveProject();
+  const { countForProject } = useSubmittalDraft();
+  const pid = project.key;
+  const seed = hashSeed(pid);
+  const bomCount = useMemo(() => bomCountForUmbrellaProject(pid), [pid]);
+  const specCount = takeCount(seed, 2, 0, 12);
+  const seisBraceCount = takeCount(seed, 1, 1, 5);
+  const draftSubmittals = countForProject(pid);
+  const submittalPackagesCount =
+    draftSubmittals > 0 ? draftSubmittals : takeCount(seed, 3, 1, 4);
+
+  const go = (path: 'bom' | 'sales-brace' | 'seis-brace' | 'submittal') => {
+    setProjectId(pid);
+    if (path === 'bom') {
+      navigate('/bom');
+      return;
+    }
+    navigate(umbrellaProjectWorkspacePath(companySlug, pid, path));
+  };
+
+  return (
+    <Flex vertical gap={token.marginSM} style={{ width: '100%' }}>
+      <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+        Modules for this job site
+      </Typography.Text>
+      <Row gutter={[token.marginSM, token.marginSM]}>
+        <Col xs={24} sm={12} xl={6}>
+          <ModuleRollupCard
+            title="BOM"
+            icon={<UnorderedListOutlined />}
+            countLabel={`${bomCount} BOM${bomCount === 1 ? '' : 's'}`}
+            onNavigate={() => go('bom')}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <ModuleRollupCard
+            title="Spec"
+            icon={<FileTextOutlined />}
+            countLabel={`${specCount} spec item${specCount === 1 ? '' : 's'}`}
+            onNavigate={() => go('sales-brace')}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <ModuleRollupCard
+            title="SeisBrace"
+            icon={<CalculatorOutlined />}
+            countLabel={`${seisBraceCount} design${seisBraceCount === 1 ? '' : 's'}`}
+            onNavigate={() => go('seis-brace')}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <ModuleRollupCard
+            title="Submittal Manager"
+            icon={<InboxOutlined />}
+            countLabel={`${submittalPackagesCount} package${submittalPackagesCount === 1 ? '' : 's'}`}
+            onNavigate={() => go('submittal')}
+          />
+        </Col>
+      </Row>
+    </Flex>
+  );
 }
 
-/** Company Home at `/:companySlug/dashboard` — recent projects, overview, full project directory. */
+/** Company Home — global search + dense projects table with inline expand for roll-ups. */
 export function HomeHubPage() {
   const { token } = theme.useToken();
   const navigate = useNavigate();
   const { companySlug, companyLabel } = useUmbrellaCompany();
   const { setProjectId } = useActiveProject();
-  const [tab, setTab] = useState<string>('all');
+  const [tab, setTab] = useState<string>('recent');
   const [starredKeys, setStarredKeys] = useState<Set<string>>(() => new Set(['1', '3']));
   const [rows, setRows] = useState<ProjectRow[]>(() => [...PROJECT_SEED_ROWS]);
   const [projectsPage, setProjectsPage] = useState(1);
   const [searchText, setSearchText] = useState('');
+  const [globalSearchText, setGlobalSearchText] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm] = Form.useForm();
+  const [editOpen, setEditOpen] = useState(false);
+  const [editKey, setEditKey] = useState<string | null>(null);
+  const [editForm] = Form.useForm();
   const [expandedRowKeys, setExpandedRowKeys] = useState<Key[]>([]);
 
   const toggleStar = (key: string) => {
@@ -411,15 +269,28 @@ export function HomeHubPage() {
   }, [projectsPage, tab, searchText]);
 
   const pagedProjectRows = useMemo(() => {
-    const start = (projectsPage - 1) * shellLayout.tablePageSizeDefault;
-    return filteredRows.slice(start, start + shellLayout.tablePageSizeDefault);
+    const start = (projectsPage - 1) * HOME_HUB_PROJECTS_PAGE_SIZE;
+    return filteredRows.slice(start, start + HOME_HUB_PROJECTS_PAGE_SIZE);
   }, [filteredRows, projectsPage]);
 
   const tabItems: TabsProps['items'] = [
-    { key: 'all', label: 'All' },
     { key: 'recent', label: 'Recent' },
+    { key: 'all', label: 'All' },
     { key: 'starred', label: 'Starred' },
   ];
+
+  const openEdit = (key: string) => {
+    const row = rows.find((r) => r.key === key);
+    if (!row) return;
+    setEditKey(key);
+    editForm.setFieldsValue({
+      name: row.name,
+      address: row.address,
+      city: row.city,
+      state: row.state,
+    });
+    setEditOpen(true);
+  };
 
   const columns: TableColumnsType<ProjectRow & { starred: boolean }> = [
     {
@@ -445,10 +316,20 @@ export function HomeHubPage() {
       ),
     },
     {
-      title: 'Project Name',
+      title: 'Project name',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string) => <Typography.Text strong>{name}</Typography.Text>,
+      render: (name: string, record) => (
+        <Typography.Link
+          onClick={(e) => {
+            e.stopPropagation();
+            setProjectId(record.key);
+            navigate(umbrellaProjectWorkspacePath(companySlug, record.key, 'content'));
+          }}
+        >
+          {name}
+        </Typography.Link>
+      ),
     },
     {
       title: 'Address',
@@ -467,10 +348,35 @@ export function HomeHubPage() {
       width: token.controlHeightSM * 2,
     },
     {
-      title: 'Last Opened',
+      title: 'Last opened',
       dataIndex: 'lastOpened',
       key: 'lastOpened',
       align: 'right',
+    },
+    {
+      key: 'actions',
+      width: token.controlHeightLG,
+      align: 'center',
+      render: (_, record) => {
+        const menuItems: MenuProps['items'] = [
+          {
+            key: 'edit',
+            label: 'Edit project',
+            onClick: () => openEdit(record.key),
+          },
+        ];
+        return (
+          <Dropdown menu={{ items: menuItems }} trigger={['click']}>
+            <Button
+              type="text"
+              size="small"
+              icon={<MoreOutlined />}
+              aria-label="Project actions"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </Dropdown>
+        );
+      },
     },
   ];
 
@@ -478,6 +384,7 @@ export function HomeHubPage() {
   const showEmpty = !hasAnyProjects;
   const showNoMatches = hasAnyProjects && filteredRows.length === 0;
   const starredEmpty = tab === 'starred' && hasAnyProjects && filteredRows.length === 0 && searchText.trim() === '';
+  const recentEmpty = tab === 'recent' && hasAnyProjects && filteredRows.length === 0 && searchText.trim() === '';
 
   const listPanelStyle = {
     background: token.colorBgContainer,
@@ -486,10 +393,17 @@ export function HomeHubPage() {
     overflow: 'hidden' as const,
   };
 
-  const recentStrip = useMemo(() => pickRecentProjectsForStrip(rows), [rows]);
+  const runGlobalSearch = () => {
+    const q = globalSearchText.trim();
+    if (q) {
+      navigate(`/catalog/results?q=${encodeURIComponent(q)}`);
+    } else {
+      navigate('/catalog');
+    }
+  };
 
   return (
-    <Space orientation="vertical" size={token.marginLG} style={{ width: '100%' }}>
+    <Space orientation="vertical" size={token.marginMD} style={{ width: '100%' }}>
       <Flex justify="space-between" align="flex-start" wrap="wrap" gap={token.margin}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <Typography.Text type="secondary" style={{ display: 'block', marginBottom: token.marginXXS }}>
@@ -499,74 +413,60 @@ export function HomeHubPage() {
             Home
           </Typography.Title>
           <Typography.Paragraph type="secondary" style={{ margin: `${token.marginXXS}px 0 0`, maxWidth: 720 }}>
-            Recent job sites, company snapshot, and the full project directory. Every project is shared by SeisBrace,
-            Submittal, Content, BOM, and Spec. Browse the catalog without a project — when you package or download,
-            you choose which project to associate.
+            Projects list below defaults to <strong>Recent</strong>. Expand a row for site details, roll-up counts, and
+            module cards (BOM, Spec, SeisBrace, Submittal Manager). Company snapshot follows the table.
           </Typography.Paragraph>
           <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM, display: 'block', marginTop: token.marginXS }}>
             Home (demo): /{companySlug}/dashboard
           </Typography.Text>
         </div>
-        <Flex gap={token.marginSM} wrap="wrap" style={{ flexShrink: 0 }}>
-          <Button type="default" size="large" icon={<GlobalOutlined />} onClick={() => navigate('/catalog')}>
-            Browse catalog
-          </Button>
-          <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            Create project
-          </Button>
-        </Flex>
+        <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+          New project
+        </Button>
       </Flex>
 
-      <div style={{ width: '100%' }}>
-        <Typography.Title level={4} style={{ marginBottom: token.marginMD }}>
-          Recent projects
-        </Typography.Title>
-        {recentStrip.length === 0 ? (
-          <Typography.Text type="secondary">No projects yet — create one to get started.</Typography.Text>
-        ) : (
-          <Row gutter={[token.marginMD, token.marginMD]}>
-            {recentStrip.map((p) => (
-              <Col xs={24} md={8} key={p.key}>
-                <Card size="small" styles={{ title: { marginBottom: 0 } }} title={p.name}>
-                  <Typography.Text type="secondary" style={{ display: 'block', marginBottom: token.marginXXS }}>
-                    {p.city}, {p.state} · Last opened {p.lastOpened}
-                  </Typography.Text>
-                  <Button
-                    type="link"
-                    onClick={() => navigate(umbrellaProjectWorkspacePath(companySlug, p.key, 'content'))}
-                    style={{ padding: 0, height: 'auto' }}
-                  >
-                    Open project
-                  </Button>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        )}
-      </div>
-
-      <CrossProjectOverview projectCount={rows.length} onNewProject={() => setCreateOpen(true)} />
-
-      <Typography.Title level={4} style={{ margin: 0 }}>
-        All projects
-      </Typography.Title>
-
-      <Alert
-        type="info"
-        showIcon
-        message="Pick a job site once — it follows you across tools"
-        description="After you choose a project, work in SeisBrace, Submittal, Content, BOM, or Spec; your project stays selected as you move between modules. Expand a row below to preview what is on file for that job site, then open a module."
-        style={{ width: '100%' }}
-      />
-
-      <Card styles={{ body: { padding: 0 } }} style={listPanelStyle}>
-        <div style={{ padding: token.paddingLG, paddingBottom: token.paddingMD }}>
+      <Card
+        size="small"
+        styles={{ body: { paddingBlock: token.paddingSM, paddingInline: token.paddingMD } }}
+        title={
+          <Typography.Text strong style={{ fontSize: token.fontSize }}>
+            Global search
+          </Typography.Text>
+        }
+      >
+        <Typography.Paragraph type="secondary" style={{ margin: `0 0 ${token.marginSM}px`, fontSize: token.fontSizeSM }}>
+          Search catalog and parts. Opens results; browse catalog without a query if you prefer.
+        </Typography.Paragraph>
+        <Flex gap={token.marginSM} wrap="wrap" align="stretch">
           <AppSearchInput
             allowClear
-            placeholder="Search by name, address, city, or state…"
+            placeholder="Search catalog, SKUs, descriptions…"
+            value={globalSearchText}
+            onChange={(e) => setGlobalSearchText(e.target.value)}
+            onPressEnter={runGlobalSearch}
+            style={{ flex: 1, minWidth: 200 }}
+          />
+          <Button type="primary" icon={<SearchOutlined />} size="large" onClick={runGlobalSearch}>
+            Search
+          </Button>
+          <Button size="large" icon={<GlobalOutlined />} onClick={() => navigate('/catalog')}>
+            Browse catalog
+          </Button>
+        </Flex>
+      </Card>
+
+      <Typography.Title level={4} style={{ marginBottom: token.marginXS }}>
+        Projects
+      </Typography.Title>
+
+      <Card styles={{ body: { padding: 0 } }} style={listPanelStyle}>
+        <div style={{ padding: token.paddingMD, paddingBottom: token.paddingSM }}>
+          <AppSearchInput
+            allowClear
+            placeholder="Filter by name, address, city, or state…"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: '100%', marginBottom: token.marginMD }}
+            style={{ width: '100%', marginBottom: token.marginSM }}
           />
           <Tabs activeKey={tab} items={tabItems} onChange={setTab} />
         </div>
@@ -592,12 +492,18 @@ export function HomeHubPage() {
               description={
                 <Space orientation="vertical" size={token.marginXS}>
                   <Typography.Text strong>
-                    {starredEmpty ? 'No starred projects yet' : 'No projects match your filter'}
+                    {starredEmpty
+                      ? 'No starred projects yet'
+                      : recentEmpty
+                        ? 'No projects match Recent right now'
+                        : 'No projects match your filter'}
                   </Typography.Text>
                   <Typography.Text type="secondary">
                     {starredEmpty
-                      ? 'Star a project from the table to pin it here.'
-                      : 'Try another search term or clear filters.'}
+                      ? 'Star a project from the list to pin it here.'
+                      : recentEmpty
+                        ? 'Switch to All or clear filters to see more job sites.'
+                        : 'Try another search term or clear filters.'}
                   </Typography.Text>
                 </Space>
               }
@@ -605,10 +511,10 @@ export function HomeHubPage() {
               <Button
                 onClick={() => {
                   setSearchText('');
-                  setTab('all');
+                  if (starredEmpty || recentEmpty) setTab('all');
                 }}
               >
-                {starredEmpty ? 'View all projects' : 'Clear filters'}
+                {starredEmpty || recentEmpty ? 'View all projects' : 'Clear filters'}
               </Button>
             </Empty>
           </div>
@@ -621,7 +527,41 @@ export function HomeHubPage() {
               dataSource={pagedProjectRows}
               expandable={{
                 expandedRowRender: (record) => (
-                  <ProjectWorkspacePreview project={record} companySlug={companySlug} navigate={navigate} />
+                  <div
+                    style={{
+                      paddingBlock: token.paddingSM,
+                      paddingInline: token.paddingMD,
+                      background: token.colorFillAlter,
+                      borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
+                    }}
+                  >
+                    <Flex
+                      vertical
+                      gap={token.marginMD}
+                      style={{ width: '100%' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div
+                        title={`${record.address} · ${record.city}, ${record.state} · Last opened ${record.lastOpened}`}
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          width: '100%',
+                          lineHeight: token.lineHeight,
+                        }}
+                      >
+                        <Typography.Text strong>{record.address}</Typography.Text>
+                        <Typography.Text type="secondary"> · </Typography.Text>
+                        <Typography.Text type="secondary">
+                          {record.city}, {record.state}
+                        </Typography.Text>
+                        <Typography.Text type="secondary"> · Last opened </Typography.Text>
+                        <Typography.Text>{record.lastOpened}</Typography.Text>
+                      </div>
+                      <ProjectModuleRollupCards project={record} companySlug={companySlug} />
+                    </Flex>
+                  </div>
                 ),
                 expandedRowKeys,
                 onExpandedRowsChange: (keys) => {
@@ -644,10 +584,10 @@ export function HomeHubPage() {
                 },
               }}
             />
-            <Flex justify="flex-end" style={{ padding: token.paddingLG, paddingTop: token.paddingMD }}>
+            <Flex justify="flex-end" style={{ padding: token.paddingMD, paddingTop: token.paddingSM }}>
               <Pagination
                 current={projectsPage}
-                pageSize={shellLayout.tablePageSizeDefault}
+                pageSize={HOME_HUB_PROJECTS_PAGE_SIZE}
                 total={filteredRows.length}
                 onChange={setProjectsPage}
                 showSizeChanger={false}
@@ -656,6 +596,8 @@ export function HomeHubPage() {
           </>
         )}
       </Card>
+
+      <CrossProjectOverview projectCount={rows.length} />
 
       <Modal
         title="Create construction project"
@@ -710,6 +652,71 @@ export function HomeHubPage() {
                 onClick={() => {
                   setCreateOpen(false);
                   createForm.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Edit project"
+        open={editOpen}
+        onCancel={() => {
+          setEditOpen(false);
+          setEditKey(null);
+          editForm.resetFields();
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          layout="vertical"
+          form={editForm}
+          onFinish={(values: { name: string; address?: string; city?: string; state?: string }) => {
+            if (!editKey) return;
+            setRows((prev) =>
+              prev.map((r) =>
+                r.key === editKey
+                  ? {
+                      ...r,
+                      name: values.name,
+                      address: values.address?.trim() || r.address,
+                      city: values.city?.trim() || r.city,
+                      state: values.state?.trim() || r.state,
+                    }
+                  : r,
+              ),
+            );
+            setEditOpen(false);
+            setEditKey(null);
+            editForm.resetFields();
+          }}
+        >
+          <Form.Item label="Project name" name="name" rules={[{ required: true, message: 'Enter a project name' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item label="Address" name="address">
+            <Input />
+          </Form.Item>
+          <Form.Item label="City" name="city">
+            <Input />
+          </Form.Item>
+          <Form.Item label="State / region" name="state">
+            <Input />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Save
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditOpen(false);
+                  setEditKey(null);
+                  editForm.resetFields();
                 }}
               >
                 Cancel
