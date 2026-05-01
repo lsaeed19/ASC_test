@@ -173,10 +173,15 @@ function ProjectModuleRollupCards({ project, companySlug }: { project: ProjectRo
   };
 
   return (
-    <Flex vertical gap={token.marginSM} style={{ width: '100%' }}>
-      <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
-        Modules for this job site
-      </Typography.Text>
+    <Flex vertical gap={token.marginXS} style={{ width: '100%' }}>
+      <Flex vertical gap={2}>
+        <Typography.Title level={5} style={{ margin: 0, lineHeight: 1.35 }}>
+          Modules
+        </Typography.Title>
+        <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+          Open a workspace for this job site
+        </Typography.Text>
+      </Flex>
       <Row gutter={[token.marginSM, token.marginSM]}>
         <Col xs={24} sm={12} xl={6}>
           <ModuleRollupCard
@@ -380,6 +385,10 @@ export function HomeHubPage() {
     },
   ];
 
+  /** Align expanded body with Project name column: expand + cell gutters + star (matches column widths). */
+  const expandedRollupAlignStart =
+    token.controlHeightLG + token.padding + token.controlHeightLG + token.padding;
+
   const hasAnyProjects = rows.length > 0;
   const showEmpty = !hasAnyProjects;
   const showNoMatches = hasAnyProjects && filteredRows.length === 0;
@@ -526,19 +535,27 @@ export function HomeHubPage() {
               columns={columns}
               dataSource={pagedProjectRows}
               expandable={{
+                columnWidth: token.controlHeightLG,
                 expandedRowRender: (record) => (
                   <div
                     style={{
                       paddingBlock: token.paddingSM,
-                      paddingInline: token.paddingMD,
+                      paddingInline: 0,
                       background: token.colorFillAlter,
                       borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
                     }}
                   >
                     <Flex
                       vertical
-                      gap={token.marginMD}
-                      style={{ width: '100%' }}
+                      gap={token.marginSM}
+                      style={{
+                        width: '100%',
+                        maxWidth: '100%',
+                        boxSizing: 'border-box',
+                        paddingInlineStart: expandedRollupAlignStart + token.marginMD,
+                        paddingInlineEnd: token.paddingMD,
+                        borderInlineStart: `${token.lineWidthFocus}px solid ${token.colorPrimary}`,
+                      }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div
@@ -547,7 +564,7 @@ export function HomeHubPage() {
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
-                          width: '100%',
+                          maxWidth: '100%',
                           lineHeight: token.lineHeight,
                         }}
                       >
