@@ -1,7 +1,7 @@
 import { DownOutlined, GlobalOutlined, PlusOutlined, StarFilled, StarOutlined, UpOutlined } from '@ant-design/icons';
 import { useEffect, useMemo, useState, type Key } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { useActiveProject } from '../context/ActiveProjectContext';
 import { useUmbrellaCompany } from '../context/UmbrellaCompanyContext';
@@ -10,12 +10,14 @@ import {
   Alert,
   Button,
   Card,
+  Col,
   Empty,
   Flex,
   Form,
   Input,
   Modal,
   Pagination,
+  Row,
   Space,
   Table,
   Tabs,
@@ -26,8 +28,13 @@ import type { TableColumnsType, TabsProps } from '../ui/antd';
 
 import { shellLayout } from '../theme/hydraAlias';
 import { hydraBaseStrong } from '../theme/hydraTypography';
+import { CrossProjectOverview } from './CrossProjectOverview';
 import { PROJECT_SEED_ROWS, type ProjectRow } from './projectSeed';
-import { umbrellaProjectWorkspacePath } from './umbrellaCompany';
+import {
+  UMBRELLA_COMPANY_SLUG,
+  umbrellaDashboardPath,
+  umbrellaProjectWorkspacePath,
+} from './umbrellaCompany';
 
 function hashSeed(key: string): number {
   let h = 0;
@@ -345,8 +352,17 @@ function ProjectWorkspacePreview({ project, companySlug, navigate }: ProjectPrev
   );
 }
 
-/** Unified Projects hub at `/:companySlug/projects` — module-agnostic Umbrella screen. */
-export function ShellHomeContent() {
+function pickRecentProjectsForStrip(allRows: ProjectRow[]): ProjectRow[] {
+  return [...allRows]
+    .sort((a, b) => {
+      if (a.recent !== b.recent) return a.recent ? -1 : 1;
+      return 0;
+    })
+    .slice(0, 3);
+}
+
+/** Company Home at `/:companySlug/dashboard` — recent projects, overview, full project directory. */
+export function HomeHubPage() {
   const { token } = theme.useToken();
   const navigate = useNavigate();
   const { companySlug, companyLabel } = useUmbrellaCompany();
@@ -470,6 +486,8 @@ export function ShellHomeContent() {
     overflow: 'hidden' as const,
   };
 
+  const recentStrip = useMemo(() => pickRecentProjectsForStrip(rows), [rows]);
+
   return (
     <Space orientation="vertical" size={token.marginLG} style={{ width: '100%' }}>
       <Flex justify="space-between" align="flex-start" wrap="wrap" gap={token.margin}>
@@ -478,15 +496,15 @@ export function ShellHomeContent() {
             {companyLabel} · unified hub
           </Typography.Text>
           <Typography.Title level={3} style={{ margin: 0 }}>
-            Projects
+            Home
           </Typography.Title>
           <Typography.Paragraph type="secondary" style={{ margin: `${token.marginXXS}px 0 0`, maxWidth: 720 }}>
-            Every job site listed here is shared by SeisBrace, Submittal, Content, BOM, and Spec. Browse the product
-            catalog without a project — when you download or package items, you will choose which project to
-            associate them with.
+            Recent job sites, company snapshot, and the full project directory. Every project is shared by SeisBrace,
+            Submittal, Content, BOM, and Spec. Browse the catalog without a project — when you package or download,
+            you choose which project to associate.
           </Typography.Paragraph>
           <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM, display: 'block', marginTop: token.marginXS }}>
-            Canonical path (demo): /{companySlug}/projects
+            Home (demo): /{companySlug}/dashboard
           </Typography.Text>
         </div>
         <Flex gap={token.marginSM} wrap="wrap" style={{ flexShrink: 0 }}>
@@ -498,6 +516,40 @@ export function ShellHomeContent() {
           </Button>
         </Flex>
       </Flex>
+
+      <div style={{ width: '100%' }}>
+        <Typography.Title level={4} style={{ marginBottom: token.marginMD }}>
+          Recent projects
+        </Typography.Title>
+        {recentStrip.length === 0 ? (
+          <Typography.Text type="secondary">No projects yet — create one to get started.</Typography.Text>
+        ) : (
+          <Row gutter={[token.marginMD, token.marginMD]}>
+            {recentStrip.map((p) => (
+              <Col xs={24} md={8} key={p.key}>
+                <Card size="small" styles={{ title: { marginBottom: 0 } }} title={p.name}>
+                  <Typography.Text type="secondary" style={{ display: 'block', marginBottom: token.marginXXS }}>
+                    {p.city}, {p.state} · Last opened {p.lastOpened}
+                  </Typography.Text>
+                  <Button
+                    type="link"
+                    onClick={() => navigate(umbrellaProjectWorkspacePath(companySlug, p.key, 'content'))}
+                    style={{ padding: 0, height: 'auto' }}
+                  >
+                    Open project
+                  </Button>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+      </div>
+
+      <CrossProjectOverview projectCount={rows.length} onNewProject={() => setCreateOpen(true)} />
+
+      <Typography.Title level={4} style={{ margin: 0 }}>
+        All projects
+      </Typography.Title>
 
       <Alert
         type="info"
@@ -668,4 +720,10 @@ export function ShellHomeContent() {
       </Modal>
     </Space>
   );
+}
+
+/** Legacy list URL `/:companySlug/projects` redirects to Home (`/dashboard`). */
+export function ShellHomeContent() {
+  const { companySlug } = useParams<{ companySlug: string }>();
+  return <Navigate to={umbrellaDashboardPath(companySlug ?? UMBRELLA_COMPANY_SLUG)} replace />;
 }

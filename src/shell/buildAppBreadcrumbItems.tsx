@@ -7,7 +7,7 @@ import { projectTitleById } from './projectSeed';
 import {
   UMBRELLA_COMPANY_LABEL,
   UMBRELLA_COMPANY_SLUG,
-  umbrellaProjectsPath,
+  umbrellaDashboardPath,
 } from './umbrellaCompany';
 
 type BreadcrumbSeg = { label: string; to?: string };
@@ -76,7 +76,7 @@ export function buildAppBreadcrumbItems(a: BuildArgs): BreadcrumbProps['items'] 
 
   const dashSlug = parseCompanyDashboard(pathname);
   if (dashSlug) {
-    const segs: BreadcrumbSeg[] = [companyHomeSeg(dashSlug), { label: 'Homepage' }];
+    const segs: BreadcrumbSeg[] = [companyHomeSeg(dashSlug), { label: 'Home' }];
     return toItems(segs);
   }
 
@@ -86,7 +86,7 @@ export function buildAppBreadcrumbItems(a: BuildArgs): BreadcrumbProps['items'] 
     const segs: BreadcrumbSeg[] = [companyHomeSeg(companySlug)];
 
     if (!pathProjectId) {
-      segs.push({ label: 'Projects' });
+      segs.push({ label: 'Home', to: umbrellaDashboardPath(companySlug) });
       return toItems(segs);
     }
 
@@ -94,7 +94,7 @@ export function buildAppBreadcrumbItems(a: BuildArgs): BreadcrumbProps['items'] 
     const pTitle = projectTitleById(pid) ?? 'Project';
     const hub = `/${companySlug}/projects/${pid}/content`;
 
-    segs.push({ label: 'Projects', to: umbrellaProjectsPath(companySlug) });
+    segs.push({ label: 'Home', to: umbrellaDashboardPath(companySlug) });
 
     if (!tail || tail === '/' || tail === '') {
       return toItems(segs);

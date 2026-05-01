@@ -90,20 +90,13 @@ function SwitchProjectModal({ open, onClose }: { open: boolean; onClose: () => v
 type TopBarCopy = { title: string; subtitle: string };
 
 function topBarCopyForPath(pathname: string, activeProjectName?: string): TopBarCopy {
-  const projectsList = /^\/[^/]+\/projects\/?$/.test(pathname);
   const companyDashboard = /^\/[^/]+\/dashboard\/?$/.test(pathname);
   const scopedProjectWorkspace = /^\/[^/]+\/projects\/[^/]+\//.test(pathname);
 
-  if (projectsList) {
-    return {
-      title: 'ConnectED',
-      subtitle: 'Projects — your job sites for every module',
-    };
-  }
   if (companyDashboard) {
     return {
       title: 'ConnectED',
-      subtitle: 'Company home',
+      subtitle: 'Home · recent projects, overview, and job site directory',
     };
   }
   if (scopedProjectWorkspace) {

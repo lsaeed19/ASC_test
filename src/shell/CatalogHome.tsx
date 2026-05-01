@@ -8,7 +8,7 @@ import {
 } from '../catalog/catalogDemoData';
 import { useUmbrellaCompany } from '../context/UmbrellaCompanyContext';
 import { PageBackButton } from './PageBackButton';
-import { umbrellaProjectsPath } from './umbrellaCompany';
+import { umbrellaDashboardPath } from './umbrellaCompany';
 import { shellLayout } from '../theme/hydraAlias';
 import { hydraBaseStrong } from '../theme/hydraTypography';
 import { AppSearchInput, Button, Flex, Pagination, Space, Table, Tag, Typography, theme } from '../ui/antd';
@@ -58,7 +58,7 @@ export function CatalogHome() {
 
   return (
     <Space orientation="vertical" size={token.marginLG} style={{ width: '100%' }}>
-      <PageBackButton to={umbrellaProjectsPath(companySlug)}>Back to projects</PageBackButton>
+      <PageBackButton to={umbrellaDashboardPath(companySlug)}>Back to home</PageBackButton>
       <Typography.Title level={3} style={{ margin: 0 }}>
         Catalog
       </Typography.Title>

@@ -1,27 +1,24 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-import { useUmbrellaCompany } from '../context/UmbrellaCompanyContext';
-import { PageBackButton } from './PageBackButton';
-import { umbrellaProjectsPath } from './umbrellaCompany';
-import { PROJECT_SEED_ROWS } from './projectSeed';
 import { Button, Card, Col, Flex, Progress, Row, Space, Typography, theme } from '../ui/antd';
 
-export function DashboardPlaceholder() {
+type CrossProjectOverviewProps = {
+  projectCount: number;
+  onNewProject: () => void;
+};
+
+/** Cross-project metrics and quick actions (formerly dashboard-only body). */
+export function CrossProjectOverview({ projectCount, onNewProject }: CrossProjectOverviewProps) {
   const { token } = theme.useToken();
   const navigate = useNavigate();
-  const { companySlug: slugFromRoute } = useParams<{ companySlug?: string }>();
-  const { companySlug } = useUmbrellaCompany();
-  const slug = slugFromRoute ?? companySlug;
-  const projectCount = PROJECT_SEED_ROWS.length;
 
   return (
     <Space orientation="vertical" size={token.marginLG} style={{ width: '100%' }}>
-      <PageBackButton to={umbrellaProjectsPath(slug)}>Back to projects</PageBackButton>
-      <Typography.Title level={3} style={{ margin: 0 }}>
-        Dashboard
+      <Typography.Title level={4} style={{ margin: 0 }}>
+        Company overview
       </Typography.Title>
       <Typography.Paragraph type="secondary" style={{ margin: 0 }}>
-        Cross-project overview (demo metrics).
+        Cross-project snapshot (demo metrics).
       </Typography.Paragraph>
 
       <Row gutter={[token.marginMD, token.marginMD]}>
@@ -99,7 +96,7 @@ export function DashboardPlaceholder() {
       </Row>
 
       <Flex gap={token.marginSM} wrap="wrap">
-        <Button type="primary" onClick={() => navigate(umbrellaProjectsPath(slug))}>
+        <Button type="primary" onClick={onNewProject}>
           New project
         </Button>
         <Button onClick={() => navigate('/bom')}>Upload BOM</Button>

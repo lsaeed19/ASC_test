@@ -18,7 +18,7 @@ import { mockBomProjects } from '../data/mockData';
 import { BomProjectStatusTag } from '../components/BomTags';
 import type { BomProject } from '../data/types';
 import { shellLayout } from '../../theme/hydraAlias';
-import { umbrellaProjectsPath } from '../../shell/umbrellaCompany';
+import { umbrellaDashboardPath } from '../../shell/umbrellaCompany';
 import {
   Alert,
   App,
@@ -314,7 +314,7 @@ export function BomLandingPage() {
   return (
     <>
       <Space orientation="vertical" size={token.marginLG} style={{ width: '100%' }}>
-        <PageBackButton to={umbrellaProjectsPath(companySlug)}>Back to unified projects</PageBackButton>
+        <PageBackButton to={umbrellaDashboardPath(companySlug)}>Back to home</PageBackButton>
         {!project ? (
           <Alert
             type="info"

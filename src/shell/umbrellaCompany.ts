@@ -1,7 +1,7 @@
 /**
- * Demo Umbrella (ConnectED) company scope — aligns URLs with Unified Projects PRD
- * (`/:companyName/projects`). Slug should stay distinct from top-level app segments
- * like `bom` and `catalog` (those routes are registered first in the router).
+ * Demo Umbrella (ConnectED) company scope — Home hub at `/:companySlug/dashboard`;
+ * project workspaces at `/:companySlug/projects/:projectId/...`. Slug stays distinct
+ * from top-level segments like `bom` and `catalog`.
  */
 export const UMBRELLA_COMPANY_SLUG = 'acme-electric';
 
@@ -9,6 +9,11 @@ export const UMBRELLA_COMPANY_LABEL = 'Acme Electric';
 
 export function umbrellaProjectsPath(companySlug: string = UMBRELLA_COMPANY_SLUG): string {
   return `/${companySlug}/projects`;
+}
+
+/** Company Home hub — projects overview, recents, and cross-project snapshot. */
+export function umbrellaDashboardPath(companySlug: string = UMBRELLA_COMPANY_SLUG): string {
+  return `/${companySlug}/dashboard`;
 }
 
 export function umbrellaProjectWorkspacePath(

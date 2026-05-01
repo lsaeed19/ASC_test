@@ -92,7 +92,8 @@ This repository uses npm and `package-lock.json`, so `yarn` and `pnpm` are not r
 
 After startup, quickly verify these routes:
 
-- `/projects` (entry/home)
+- `/` → `/:companySlug/dashboard` (Home: recents, overview, project directory)
+- `/projects` → redirects to Home; `/:companySlug/projects` → same
 - `/catalog`
 - `/bom`
 
@@ -140,14 +141,16 @@ Paste it into Cursor chat and replace the screen/flow specifics.
 
 ## Project Structure (High Level)
 
-- `src/shell/*` - shell pages (projects, catalog, top-level workspace)
+- `src/shell/*` - shell pages (Home hub, catalog, top-level workspace)
 - `src/bom/*` - BOM-specific flows and pages
 - `src/theme/*` - Hydra/Ant theme tokens and mappings
 - `docs/prompt-templates/*` - PM prompt templates
 
 ## Available App Routes (Reference)
 
-- `/projects` - projects list and project creation entry
+- `/:companySlug/dashboard` - Home (recent projects, company overview, full project list)
+- `/:companySlug/projects` - redirects to Home (bookmark-safe)
+- `/:companySlug/projects/:projectId/*` - project workspace modules
 - `/catalog` - catalog landing
 - `/catalog/results` - catalog search/result view
 - `/catalog/parts/:partId` - part details
@@ -176,7 +179,7 @@ Paste it into Cursor chat and replace the screen/flow specifics.
 - Create a branch for each feature/fix
 - Keep commits small and clear
 - Open PR to `main`
-- Merge only after quick route sanity check (`/projects`, `/catalog`, `/bom`)
+- Merge only after quick route sanity check (`/acme-electric/dashboard`, `/catalog`, `/bom`)
 
 ## Troubleshooting
 

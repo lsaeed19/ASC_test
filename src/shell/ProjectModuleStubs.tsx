@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSubmittalDraft } from '../context/SubmittalDraftContext';
 import { PageBackButton } from './PageBackButton';
 import { projectTitleById } from './projectSeed';
+import { umbrellaDashboardPath } from './umbrellaCompany';
 import {
   Button,
   Card,
@@ -104,7 +105,7 @@ export function ContentModule() {
 
   return (
     <Space orientation="vertical" size={token.marginLG} style={{ width: '100%' }}>
-      <PageBackButton to={`/${companySlug}/projects`}>Back to all projects</PageBackButton>
+      <PageBackButton to={umbrellaDashboardPath(companySlug)}>Back to home</PageBackButton>
       <Typography.Title level={3} style={{ margin: 0 }}>
         {title}
       </Typography.Title>

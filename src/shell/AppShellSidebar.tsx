@@ -1,5 +1,4 @@
 import {
-  BarChartOutlined,
   CalculatorOutlined,
   FileTextOutlined,
   GlobalOutlined,
@@ -33,7 +32,7 @@ function primarySideKey(pathname: string): string {
   if (pathname.startsWith('/catalog')) return 'catalog';
   if (pathname.startsWith('/bom')) return 'bom';
   if (/\/[^/]+\/dashboard\/?$/.test(pathname)) return 'dash';
-  if (/\/[^/]+\/projects\/?$/.test(pathname)) return 'proj';
+  if (/\/[^/]+\/projects\/?$/.test(pathname)) return 'dash';
   if (/\/[^/]+\/projects\/[^/]+\/seis-brace/.test(pathname)) return 'seis';
   if (/\/[^/]+\/projects\/[^/]+\/sales-brace/.test(pathname)) return 'spec';
   if (/\/[^/]+\/projects\/[^/]+\/submittal/.test(pathname)) return 'submittal';
@@ -53,8 +52,7 @@ export function AppShellSidebar() {
 
   const menuItems: MenuProps['items'] = useMemo(
     () => [
-      { key: 'dash', icon: <HomeOutlined />, label: 'Homepage' },
-      { key: 'proj', icon: <BarChartOutlined />, label: 'Projects' },
+      { key: 'dash', icon: <HomeOutlined />, label: 'Home' },
       { key: 'seis', icon: <CalculatorOutlined />, label: 'SeisBrace' },
       { key: 'spec', icon: <FileTextOutlined />, label: 'Spec' },
       { key: 'submittal', icon: <InboxOutlined />, label: 'Submittal' },
@@ -71,7 +69,6 @@ export function AppShellSidebar() {
     const pid = getLastScopedProjectId();
     const routes: Record<string, string> = {
       dash: `/${companySlug}/dashboard`,
-      proj: `/${companySlug}/projects`,
       seis: `/${companySlug}/projects/${pid}/seis-brace`,
       spec: `/${companySlug}/projects/${pid}/sales-brace`,
       submittal: `/${companySlug}/projects/${pid}/submittal`,

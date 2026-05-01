@@ -16,6 +16,7 @@ import { hydraMenuItemBorderRadius } from '../theme/hydraMenuMetrics';
 import { shellLayout } from '../theme/hydraAlias';
 import { setLastScopedProjectId } from './lastProjectScope';
 import { projectTitleById } from './projectSeed';
+import { umbrellaDashboardPath } from './umbrellaCompany';
 
 const { Sider, Content } = Layout;
 
@@ -92,10 +93,10 @@ export function ProjectWorkspaceLayout() {
             type="text"
             size="small"
             icon={<LeftOutlined />}
-            onClick={() => navigate(`/${companySlug}/projects`)}
+            onClick={() => navigate(umbrellaDashboardPath(companySlug))}
             style={{ marginBottom: token.marginXS, padding: 0, height: 'auto' }}
           >
-            All projects
+            Home
           </Button>
           <Typography.Text strong>{title}</Typography.Text>
           <Typography.Paragraph type="secondary" style={{ marginBottom: 0, marginTop: token.marginXXS }}>
