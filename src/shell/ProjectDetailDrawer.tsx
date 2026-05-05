@@ -1,6 +1,7 @@
 import {
   AppstoreOutlined,
   ArrowRightOutlined,
+  CompassOutlined,
   EnvironmentOutlined,
   FilePdfOutlined,
   FileTextOutlined,
@@ -61,6 +62,13 @@ const PROJECT_MODULES: ModuleLink[] = [
     description: 'Build or convert a Bill of Materials (module dashboard)',
     icon: <UnorderedListOutlined />,
     getPath: () => '/bom',
+  },
+  {
+    key: 'projectReframing',
+    label: 'Project Reframing Proposal',
+    description: 'Progressive project commitment — proposed flow and wireframes',
+    icon: <CompassOutlined />,
+    getPath: () => '/exploration',
   },
   {
     key: 'spec',

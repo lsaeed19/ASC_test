@@ -1,5 +1,6 @@
 import {
   CalculatorOutlined,
+  CompassOutlined,
   FileTextOutlined,
   GlobalOutlined,
   HomeOutlined,
@@ -9,6 +10,7 @@ import {
   RightOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons';
+import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -19,7 +21,7 @@ import {
   hydraSidebarCollapseTriggerTopPx,
 } from '../theme/hydraMenuMetrics';
 import { sidebarSemanticsFor } from '../theme/sidebarSemantics';
-import { Button, Layout, Menu, theme } from '../ui/antd';
+import { Button, Flex, Layout, Menu, theme } from '../ui/antd';
 import type { MenuProps } from '../ui/antd';
 
 import { ConnectedSidebarBrand } from './ConnectedSidebarBrand';
@@ -28,8 +30,12 @@ import { UMBRELLA_COMPANY_SLUG } from './umbrellaCompany';
 
 const { Sider } = Layout;
 
+/** Sidebar key for the progressive project commitment proposal page (`/exploration`). */
+const PROJECT_REFRAMING_KEY = 'projectReframing';
+
 function primarySideKey(pathname: string): string {
   if (pathname.startsWith('/catalog')) return 'catalog';
+  if (pathname.startsWith('/exploration')) return PROJECT_REFRAMING_KEY;
   if (pathname.startsWith('/bom')) return 'bom';
   if (/\/[^/]+\/dashboard\/?$/.test(pathname)) return 'dash';
   if (/\/[^/]+\/projects\/?$/.test(pathname)) return 'dash';
@@ -50,7 +56,7 @@ export function AppShellSidebar() {
   const { companySlug: companySlugParam } = useParams<{ companySlug?: string }>();
   const companySlug = companySlugParam ?? UMBRELLA_COMPANY_SLUG;
 
-  const menuItems: MenuProps['items'] = useMemo(
+  const primaryMenuItems: MenuProps['items'] = useMemo(
     () => [
       { key: 'dash', icon: <HomeOutlined />, label: 'Home' },
       { key: 'seis', icon: <CalculatorOutlined />, label: 'SeisBrace' },
@@ -63,9 +69,44 @@ export function AppShellSidebar() {
     [],
   );
 
-  const selectedMenuKeys = useMemo(() => [primarySideKey(location.pathname)], [location.pathname]);
+  const proposalMenuItems: MenuProps['items'] = useMemo(
+    () => [
+      {
+        key: PROJECT_REFRAMING_KEY,
+        icon: <CompassOutlined />,
+        label: (
+          <span style={{ whiteSpace: 'normal', lineHeight: 1.35, display: 'block' }}>
+            Project Reframing Proposal
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
 
-  const onMenuClick: MenuProps['onClick'] = ({ key }) => {
+  const activeSideKey = useMemo(() => primarySideKey(location.pathname), [location.pathname]);
+
+  const primarySelectedKeys = useMemo(
+    () => (activeSideKey === PROJECT_REFRAMING_KEY ? [] : [activeSideKey]),
+    [activeSideKey],
+  );
+
+  const proposalSelectedKeys = useMemo(
+    () => (activeSideKey === PROJECT_REFRAMING_KEY ? [PROJECT_REFRAMING_KEY] : []),
+    [activeSideKey],
+  );
+
+  const proposalFooterSurface: CSSProperties = useMemo(
+    () => ({
+      flexShrink: 0,
+      borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorSplit}`,
+      background: token.colorFillTertiary,
+      paddingBlock: token.paddingXXS,
+    }),
+    [token],
+  );
+
+  const onShellMenuClick: MenuProps['onClick'] = ({ key }) => {
     const pid = getLastScopedProjectId();
     const routes: Record<string, string> = {
       dash: `/${companySlug}/dashboard`,
@@ -75,6 +116,7 @@ export function AppShellSidebar() {
       catalog: '/catalog',
       bom: '/bom',
       content: `/${companySlug}/projects/${pid}/content`,
+      [PROJECT_REFRAMING_KEY]: '/exploration',
     };
     const path = routes[key];
     if (path) navigate(path);
@@ -121,26 +163,45 @@ export function AppShellSidebar() {
         >
           <ConnectedSidebarBrand collapsed={collapsed} />
         </div>
-        <div
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflow: 'hidden',
-            paddingBlock: token.paddingXXS,
-          }}
-        >
-          <Menu
-            theme="dark"
-            mode="inline"
-            selectedKeys={selectedMenuKeys}
-            items={menuItems}
-            onClick={onMenuClick}
-            style={{ borderInlineEnd: 'none', background: 'transparent' }}
-            styles={{
-              item: { borderRadius: hydraMenuItemBorderRadius },
+        <Flex vertical style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflow: 'auto',
+              paddingBlock: token.paddingXXS,
             }}
-          />
-        </div>
+          >
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={primarySelectedKeys}
+              items={primaryMenuItems}
+              onClick={onShellMenuClick}
+              style={{ borderInlineEnd: 'none', background: 'transparent' }}
+              styles={{
+                item: { borderRadius: hydraMenuItemBorderRadius },
+              }}
+            />
+          </div>
+          <div style={proposalFooterSurface}>
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={proposalSelectedKeys}
+              items={proposalMenuItems}
+              onClick={onShellMenuClick}
+              style={{ borderInlineEnd: 'none', background: 'transparent' }}
+              styles={{
+                item: {
+                  borderRadius: hydraMenuItemBorderRadius,
+                  color: token.colorTextLightSolid,
+                  opacity: 0.92,
+                },
+              }}
+            />
+          </div>
+        </Flex>
       </div>
       <Button
         type="text"

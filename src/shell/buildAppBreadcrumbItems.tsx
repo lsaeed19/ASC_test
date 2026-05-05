@@ -116,6 +116,11 @@ export function buildAppBreadcrumbItems(a: BuildArgs): BreadcrumbProps['items'] 
 
   const segs: BreadcrumbSeg[] = [defaultCompanyHomeSeg()];
 
+  if (pathname.startsWith('/exploration')) {
+    segs.push({ label: 'Project Reframing Proposal' });
+    return toItems(segs);
+  }
+
   if (pathname.startsWith('/catalog')) {
     segs.push({ label: 'Catalog', to: pathname !== '/catalog' ? '/catalog' : undefined });
     if (pathname.includes('/results')) {

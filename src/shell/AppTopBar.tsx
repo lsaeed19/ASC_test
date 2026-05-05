@@ -113,6 +113,12 @@ function topBarCopyForPath(pathname: string, activeProjectName?: string): TopBar
       subtitle: 'Global browse — tie items to a project when you package or download',
     };
   }
+  if (pathname.startsWith('/exploration')) {
+    return {
+      title: 'Project Reframing Proposal',
+      subtitle: 'Progressive project commitment — proposed flow & wireframes',
+    };
+  }
   if (pathname.startsWith('/bom')) {
     return {
       title: 'BOM',

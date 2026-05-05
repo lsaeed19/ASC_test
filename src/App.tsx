@@ -4,6 +4,7 @@ import { AppShell } from './shell/AppShell';
 import { CatalogHome } from './shell/CatalogHome';
 import { CatalogPartPage } from './shell/CatalogPartPage';
 import { CatalogResults } from './shell/CatalogResults';
+import { ExplorationPage } from './shell/ExplorationPage';
 import { ContentModule, SalesBraceModule, SubmittalModule } from './shell/ProjectModuleStubs';
 import { BomRoutes } from './bom/BomRoutes';
 import { LegacyProjectsRedirect } from './shell/LegacyProjectsRedirect';
@@ -32,6 +33,8 @@ export function App() {
         <Route path="catalog" element={<CatalogHome />} />
         <Route path="catalog/results" element={<CatalogResults />} />
         <Route path="catalog/parts/:partId" element={<CatalogPartPage />} />
+
+        <Route path="exploration" element={<ExplorationPage />} />
 
         <Route path="bom/*" element={<BomRoutes />} />
 
